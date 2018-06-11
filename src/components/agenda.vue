@@ -10,9 +10,9 @@
       </b-card-header>
 
       <template>
-        <b-table striped hover :fields="fields" :items="agendaItems">
+        <b-table striped hover :fields="fields" :items="agendaItems" @row-clicked="selected">
 
-
+  
 
         <template slot="rank" slot-scope="data">
             <input type="text" v-model="data.item.rank"> </input>
@@ -39,6 +39,7 @@
             <b-button size="sm" class="mr-2" v-on:click="selected(data)">Select</b-button>
           </template>
 
+    
         </b-table>
       </template>        
 
@@ -100,11 +101,7 @@ export default {
       });
   },
 
-    test(data)
-    {
-      //alert(this.$data.agendaItems[1].discription)
-      alert(data.item.discription);
-    },
+   
 
     selected(data)
     {
@@ -120,7 +117,7 @@ export default {
 
         this.$data.agendaItems = newList;
 
-          this.$data.agendaItems[data.item.rank -1]._rowVariant = 'danger';
+          this.$data.agendaItems[data.rank -1]._rowVariant = 'danger';
 
     },
 
