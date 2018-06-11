@@ -12,13 +12,19 @@
       <template>
         <b-table striped hover :fields="fields" :items="agendaItems">
 
+
+
+        <template slot="rank" slot-scope="data">
+            <input type="text" v-model="data.item.rank"> </input>
+        </template>
+
           <template slot="discription" slot-scope="data">
-              {{data.item.discription}} 
+            <input type="text" v-model="data.item.discription"> </input>
           </template>
 
           <template slot="duration" slot-scope="data">
             <div v-if="data.item.duration.min - data.item.duration.max !=0">
-              {{data.item.duration.min}} - {{data.item.duration.max}} minutes
+               {{data.item.duration.min}} - {{data.item.duration.max}} minutes
             </div>
             <div v-else-if="data.item.duration.min - data.item.duration.max == 0">
               {{data.item.duration.min}} minutes
@@ -27,6 +33,10 @@
 
           <template slot="edit" slot-scope="data">
             <b-button size="sm" class="mr-2" v-on:click="test(data)">Edit</b-button>
+          </template>
+
+          <template slot="select" slot-scope="data">
+            <b-button size="sm" class="mr-2" v-on:click="selected(data)">Select</b-button>
           </template>
 
         </b-table>
@@ -52,6 +62,7 @@
 
 import {db} from '../firebase'
 import {cs} from '../firebase'
+import {_} from 'vue-underscore';
 
 export default {
  
@@ -59,7 +70,8 @@ export default {
    //agenda: db.ref('agenda'),     
   },
   firestore:{      
-   agendaItems: cs.collection('agenda').doc("id").collection("items")      
+  // agendaItems:  cs.collection('agenda').doc("id").collection("items")   
+
   },
   methods:{
 
@@ -90,8 +102,29 @@ export default {
 
     test(data)
     {
+      //alert(this.$data.agendaItems[1].discription)
       alert(data.item.discription);
     },
+
+    selected(data)
+    {
+     
+
+      var newList = [];
+
+       for (var i=0; i<this.$data.agendaItems.length; i++){
+            this.$data.agendaItems[i]._rowVariant ='';
+          newList.push(this.$data.agendaItems[i]);
+        
+        }       
+
+        this.$data.agendaItems = newList;
+
+          this.$data.agendaItems[data.item.rank -1]._rowVariant = 'danger';
+
+    },
+
+   
 
     addAgendaItem:function()
     {
@@ -142,9 +175,18 @@ export default {
   data () {
     return {
       msg: 'Aganda',
-      fields: { discription:{key:'discription', label:' '}, duration:{key:'duration', label:' '}, edit:{key:'edit', label:' '} }  
-     
+      fields: {rank:{key:'rank', label:' '}, discription:{key:'discription', label:' '}, duration:{key:'duration', label:' '}, edit:{key:'edit', label:' '}, select:{key:'select', label:' '}},
+      agendaItems:[]
     }
+  },
+
+  created(){
+
+      this.$binding("agendaItems", cs.collection('agenda').doc("id").collection("items")).then((agendaItem) => {
+      this.$data.agendaItems = _.sortBy(agendaItem,'rank');
+       
+  })
+
   }
 }
 </script>

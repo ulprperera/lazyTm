@@ -9,6 +9,7 @@ import jsPDF from 'jsPDF'
 import  './firebase'
 import vueFire from 'vueFire'
 import VueFirestore from 'vue-firestore'
+import underscore from 'vue-underscore';
 
 require('firebase/firestore')
 
@@ -16,6 +17,7 @@ require('firebase/firestore')
 Vue.use(bootstrapVue);
 Vue.use(vueFire)
 Vue.use(VueFirestore)
+Vue.use(underscore);
 
 new Vue({
   el: '#app',

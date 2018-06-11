@@ -18,6 +18,7 @@
     "vue": "^2.5.3",
     "vue-firestore": "^0.2.9",
     "vue-router": "^3.0.1",
+    "vue-underscore": "^0.1.4",
     "vuefire": "^1.4.5"
   },
   "devDependencies": {
