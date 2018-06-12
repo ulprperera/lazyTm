@@ -4,41 +4,33 @@
 
       <b-card-header>      
           <b-button-group size="sm">
-          <b-button href="#" >Add From Roster</b-button>
-          <b-button href="#" >Add New</b-button>
+          <b-button v-on:click="moveUp()" >Move Up </b-button>
+          <b-button v-on:click="moveDown()" >Move Down</b-button>
           </b-button-group>
       </b-card-header>
 
       <template>
-        <b-table striped hover :fields="fields" :items="agendaItems" @row-clicked="selected">
-
-  
+        <b-table striped hover :fields="fields" :items="agendaItems" @row-clicked="selected">  
 
         <template slot="rank" slot-scope="data">
             <input type="text" v-model="data.item.rank"> </input>
         </template>
 
-          <template slot="discription" slot-scope="data">
-            <input type="text" v-model="data.item.discription"> </input>
-          </template>
+        <template slot="discription" slot-scope="data">
+          <input type="text" v-model="data.item.discription"> </input>
+        </template>
 
-          <template slot="duration" slot-scope="data">
-            <div v-if="data.item.duration.min - data.item.duration.max !=0">
-               {{data.item.duration.min}} - {{data.item.duration.max}} minutes
-            </div>
-            <div v-else-if="data.item.duration.min - data.item.duration.max == 0">
-              {{data.item.duration.min}} minutes
-            </div>            
-          </template>  
+        <template slot="duration" slot-scope="data">
+            <input type="text" v-model="data.item.duration.min"> </input>
+             to 
+            <input type="text" v-model="data.item.duration.max"> </input>  
+            minutes 
+            <b-button v-on:click="" >Add Range</b-button>      
+        </template>  
 
-          <template slot="edit" slot-scope="data">
-            <b-button size="sm" class="mr-2" v-on:click="test(data)">Edit</b-button>
-          </template>
-
-          <template slot="select" slot-scope="data">
-            <b-button size="sm" class="mr-2" v-on:click="selected(data)">Select</b-button>
-          </template>
-
+        <template slot="edit" slot-scope="data">
+          <b-button size="sm" class="mr-2" v-on:click="test(data)">Edit</b-button>
+        </template>     
     
         </b-table>
       </template>        
@@ -99,32 +91,55 @@ export default {
       .catch(function(error) {
           console.error("Error adding document: ", error);
       });
-  },
+  },   
 
-   
+    selected(data){    
+        this.clearSelection();
 
-    selected(data)
-    {
-     
+        this.$data.agendaItems[data.rank -1]._rowVariant = 'danger';
+        this.$data.selectedItem = this.$data.agendaItems[data.rank -1];
+    },   
 
-      var newList = [];
+    moveUp(){
+      var rank = this.$data.selectedItem.rank;
+      if (rank>1){
 
-       for (var i=0; i<this.$data.agendaItems.length; i++){
-            this.$data.agendaItems[i]._rowVariant ='';
-          newList.push(this.$data.agendaItems[i]);
-        
-        }       
+      this.$data.agendaItems[rank-2].rank = rank;  
+      this.$data.agendaItems[rank-1].rank = rank -1;
 
-        this.$data.agendaItems = newList;
+      this.clearSelection();  
 
-          this.$data.agendaItems[data.rank -1]._rowVariant = 'danger';
-
+      this.$data.agendaItems = _.sortBy(this.$data.agendaItems,'rank');
+      this.$data.agendaItems[rank-2]._rowVariant = 'danger';
+      }
     },
 
-   
+      moveDown(){
+      var rank = this.$data.selectedItem.rank;
+      if (rank < this.$data.agendaItems.length){
 
-    addAgendaItem:function()
-    {
+      this.$data.agendaItems[rank].rank = rank;  
+      this.$data.agendaItems[rank-1].rank = rank + 1;
+
+      this.clearSelection();  
+
+      this.$data.agendaItems = _.sortBy(this.$data.agendaItems,'rank');
+      this.$data.agendaItems[rank]._rowVariant = 'danger';
+      }
+    },
+
+
+
+    clearSelection(){
+      var newList = [];
+       for (var i=0; i<this.$data.agendaItems.length; i++){
+            this.$data.agendaItems[i]._rowVariant ='';
+          newList.push(this.$data.agendaItems[i]);       
+       }
+        this.$data.agendaItems = newList;
+    },
+
+    addAgendaItem:function() {
 
       var agenda =  {                   
                     date:"Tomorrow",
@@ -172,16 +187,15 @@ export default {
   data () {
     return {
       msg: 'Aganda',
-      fields: {rank:{key:'rank', label:' '}, discription:{key:'discription', label:' '}, duration:{key:'duration', label:' '}, edit:{key:'edit', label:' '}, select:{key:'select', label:' '}},
-      agendaItems:[]
+      fields: {rank:{key:'rank', label:' '}, discription:{key:'discription', label:' '}, duration:{key:'duration', label:' '}, edit:{key:'edit', label:' '}},
+      agendaItems:[],
+      selectedItem:{}
     }
   },
 
   created(){
-
       this.$binding("agendaItems", cs.collection('agenda').doc("id").collection("items")).then((agendaItem) => {
-      this.$data.agendaItems = _.sortBy(agendaItem,'rank');
-       
+      this.$data.agendaItems = _.sortBy(agendaItem,'rank');       
   })
 
   }
