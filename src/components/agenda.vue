@@ -21,11 +21,15 @@
         </template>
 
         <template slot="duration" slot-scope="data">
-            <input type="text" v-model="data.item.duration.min"> </input>
-             to 
+            <div v-if="data.item.duration.min>0">
+              <input type="text" v-model="data.item.duration.min"> </input>
+              to 
+            </div>
             <input type="text" v-model="data.item.duration.max"> </input>  
             minutes 
-            <b-button v-on:click="" >Add Range</b-button>      
+            <b-button v-on:click="toggleDuration(data.item.rank)" >
+              <span v-if="data.item.duration.min >=0">Single</span>
+              <span v-if="data.item.duration.min <0">Range</span> </b-button>          
         </template>  
 
         <template slot="edit" slot-scope="data">
@@ -95,7 +99,6 @@ export default {
 
     selected(data){    
         this.clearSelection();
-
         this.$data.agendaItems[data.rank -1]._rowVariant = 'danger';
         this.$data.selectedItem = this.$data.agendaItems[data.rank -1];
     },   
@@ -110,13 +113,14 @@ export default {
       this.clearSelection();  
 
       this.$data.agendaItems = _.sortBy(this.$data.agendaItems,'rank');
-      this.$data.agendaItems[rank-2]._rowVariant = 'danger';
+      this.$data.agendaItems[rank-2]._rowVariant = 'danger';     
+
       }
     },
 
-      moveDown(){
-      var rank = this.$data.selectedItem.rank;
-      if (rank < this.$data.agendaItems.length){
+    moveDown(){
+    var rank = this.$data.selectedItem.rank;
+      if (rank < this.$data.agendaItems.length){           
 
       this.$data.agendaItems[rank].rank = rank;  
       this.$data.agendaItems[rank-1].rank = rank + 1;
@@ -124,11 +128,22 @@ export default {
       this.clearSelection();  
 
       this.$data.agendaItems = _.sortBy(this.$data.agendaItems,'rank');
-      this.$data.agendaItems[rank]._rowVariant = 'danger';
+      this.$data.agendaItems[rank]._rowVariant = 'danger';     
+
+      }
+    },    
+
+    toggleDuration(rank){
+
+      if (this.$data.agendaItems[rank-1].duration.min >= 0 )      {
+          this.$data.agendaItems[rank-1].duration.min = -1  
+         // this.$el.querySelector("#duationHandleButton" + rank).innerText = "Range";  
+      }
+      else{
+         this.$data.agendaItems[rank-1].duration.min = this.$data.agendaItems[rank-1].duration.max   
+         //this.$el.querySelector("#duationHandleButton" + rank).innerText = "Single";
       }
     },
-
-
 
     clearSelection(){
       var newList = [];
