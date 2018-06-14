@@ -6,6 +6,11 @@
           <b-button-group size="sm">
           <b-button v-on:click="moveUp()" >Move Up </b-button>
           <b-button v-on:click="moveDown()" >Move Down</b-button>
+          <b-button v-on:click="addNew()" >Add New</b-button>
+          <b-button v-on:click="remove()" >Remove</b-button>
+
+           <b-button v-on:click="deleteAgenda()" >Test</b-button>
+        
           </b-button-group>
       </b-card-header>
 
@@ -40,15 +45,14 @@
       </template>        
 
         <b-button-group size="sm">
-        <b-button v-on:click="addAgendaItem" >Add From Roster</b-button>
-        <b-button v-on:click="getRecord" >Search</b-button>
+        <b-button v-on:click="addAgendaItem" >Add From Roster</b-button>      
         <b-button v-on:click="updateRecord" >Update</b-button>
         
         </b-button-group>
 
       <b-card-footer>This is a footer</b-card-footer>
 
-    </b-card>    
+    </b-card>   
     
   </div>
 
@@ -61,100 +65,104 @@ import {db} from '../firebase'
 import {cs} from '../firebase'
 import {_} from 'vue-underscore';
 
-export default {
- 
-  firebase:{
-   //agenda: db.ref('agenda'),     
-  },
-  firestore:{      
-  // agendaItems:  cs.collection('agenda').doc("id").collection("items")   
-
-  },
+export default { 
+  
   methods:{
 
-  getRecord()
-  {
-      db.ref('agenda').orderByChild('date').equalTo('Today').on("value", function(snapshot) {
-      console.log(snapshot.val());
-     console.log(snapshot.key);
-      console.log(snapshot.child('date').key);
-    });
-  },
+    updateRecord()
+    {
+        cs.collection('agenda').doc("id").collection("items").doc('1').get()   
+        
+        .then(function(querySnapshot) {
+            console.log(querySnapshot);
 
-  updateRecord()
-  {
-      cs.collection('agenda').doc("id").collection("items").doc('1').get()   
-      
-      .then(function(querySnapshot) {
-          console.log(querySnapshot);
+            querySnapshot = {rank: 2, discription: "la la la", duration:{min:3, max:3}, player:"Sandya", signal:  {green: {minute:2, second:0}, yellow:{minute:2,second:30}, red: {minute:3, second:0}}}
+            cs.collection("agenda").doc("id").collection('items').doc("1").set(querySnapshot);
 
-          querySnapshot = {rank: 2, discription: "la la la", duration:{min:3, max:3}, player:"Sandya", signal:  {green: {minute:2, second:0}, yellow:{minute:2,second:30}, red: {minute:3, second:0}}}
-           cs.collection("agenda").doc("id").collection('items').doc("1").set(querySnapshot);
-
-      })
-      .catch(function(error) {
-          console.error("Error adding document: ", error);
-      });
-  },   
+        })
+        .catch(function(error) {
+            console.error("Error adding document: ", error);
+        });
+    },   
 
     selected(data){    
-        this.clearSelection();
-        this.$data.agendaItems[data.rank -1]._rowVariant = 'danger';
-        this.$data.selectedItem = this.$data.agendaItems[data.rank -1];
+      this.clearSelection();
+      this.$data.agendaItems[data.rank -1]._rowVariant = 'danger';
+      this.$data.selectedItem = this.$data.agendaItems[data.rank -1];
     },   
 
     moveUp(){
       var rank = this.$data.selectedItem.rank;
       if (rank>1){
-
-      this.$data.agendaItems[rank-2].rank = rank;  
-      this.$data.agendaItems[rank-1].rank = rank -1;
-
-      this.clearSelection();  
-
-      this.$data.agendaItems = _.sortBy(this.$data.agendaItems,'rank');
-      this.$data.agendaItems[rank-2]._rowVariant = 'danger';     
-
+        this.$data.agendaItems[rank-2].rank = rank;  
+        this.$data.agendaItems[rank-1].rank = rank -1;
+        this.clearSelection();  
+        this.$data.agendaItems = _.sortBy(this.$data.agendaItems,'rank');
+        this.$data.agendaItems[rank-2]._rowVariant = 'danger';     
       }
     },
 
     moveDown(){
-    var rank = this.$data.selectedItem.rank;
-      if (rank < this.$data.agendaItems.length){           
-
-      this.$data.agendaItems[rank].rank = rank;  
-      this.$data.agendaItems[rank-1].rank = rank + 1;
-
-      this.clearSelection();  
-
-      this.$data.agendaItems = _.sortBy(this.$data.agendaItems,'rank');
-      this.$data.agendaItems[rank]._rowVariant = 'danger';     
-
-      }
+      var rank = this.$data.selectedItem.rank;
+        if (rank < this.$data.agendaItems.length){ 
+          this.$data.agendaItems[rank].rank = rank;  
+          this.$data.agendaItems[rank-1].rank = rank + 1;
+          this.clearSelection(); 
+          this.$data.agendaItems = _.sortBy(this.$data.agendaItems,'rank');
+          this.$data.agendaItems[rank]._rowVariant = 'danger';  
+        }
     },    
 
     toggleDuration(rank){
-
-      if (this.$data.agendaItems[rank-1].duration.min >= 0 )      {
-          this.$data.agendaItems[rank-1].duration.min = -1  
-         // this.$el.querySelector("#duationHandleButton" + rank).innerText = "Range";  
-      }
-      else{
-         this.$data.agendaItems[rank-1].duration.min = this.$data.agendaItems[rank-1].duration.max   
-         //this.$el.querySelector("#duationHandleButton" + rank).innerText = "Single";
-      }
+      if (this.$data.agendaItems[rank-1].duration.min >= 0 ) this.$data.agendaItems[rank-1].duration.min = -1 ;     
+      else this.$data.agendaItems[rank-1].duration.min = this.$data.agendaItems[rank-1].duration.max;      
     },
 
     clearSelection(){
       var newList = [];
-       for (var i=0; i<this.$data.agendaItems.length; i++){
-            this.$data.agendaItems[i]._rowVariant ='';
+        for (var i=0; i<this.$data.agendaItems.length; i++){
+          this.$data.agendaItems[i]._rowVariant ='';
           newList.push(this.$data.agendaItems[i]);       
-       }
+        }
         this.$data.agendaItems = newList;
     },
 
-    addAgendaItem:function() {
+    addNew(){
+      var newRank = this.getMaxRank() + 1; 
+      this.$data.agendaItems.push({
+          rank: newRank,
+          discription: "",
+          duration:{min:2, max:3},
+          player:'',
+          signal: {} 
+      });
+      this.clearSelection();
+    },    
+
+    getMaxRank(){
+      var record = _.max(this.$data.agendaItems, function(o){return o.rank});
+      return record.rank;
+    },
+
+    remove(){ 
+      var selectedRank = this.$data.selectedItem.rank;     
+      var index = _.findIndex(this.$data.agendaItems, {rank:selectedRank});
+      this.$data.agendaItems.splice(index, 1);
+      this.reRank(); 
+    },
+
+    reRank()    {
+      var newList = [];
+      for (var i=0; i<this.$data.agendaItems.length; i++ )
+      {     
+        this.$data.agendaItems[i].rank = i+1;
+        newList.push(this.$data.agendaItems[i]);      
+      }
+        this.$data.agendaItems = newList;
+    },
+
+
+    addAgendaItem() {
 
       var agenda =  {                   
                     date:"Tomorrow",
@@ -171,11 +179,11 @@ export default {
                         {rank: 9, discription: "Table topics evaluation", duration:{min:6, max:6}, player:"Harpreet/Mel", signal: {green: {minute:4, second:0}, yellow:{minute:5,second:30}, red: {minute:6, second:0}}},
                         {rank: 10, discription: "Evaluation of prepared speech 1", duration:{min:3, max:3}, player:"Annie", signal: {green: {minute:2, second:0}, yellow:{minute:2,second:30}, red: {minute:3, second:0}}},
                         {rank: 11, discription: "Evaluation of prepared speech 2", duration:{min:3, max:3}, player:"Jason", signal: {green: {minute:2, second:0}, yellow:{minute:2,second:30}, red: {minute:3, second:0}}},
-                        {rank: 11, discription: "Grammarian evaluation", duration:{min:3, max:3}, player:"Janet", signal: {green: {minute:2, second:0}, yellow:{minute:2,second:30}, red: {minute:3, second:0}}},
-                        {rank: 12, discription: "Time keeper evaluation", duration:{min:2, max:2}, player:"Scott", signal: {green: {minute:1, second:0}, yellow:{minute:1,second:30}, red: {minute:2, second:0}}},
-                        {rank: 13, discription: "General evaluation",  duration:{min:5, max:5}, player:"Samir", signal:  {green: {minute:3, second:0}, yellow:{minute:4,second:0}, red: {minute:5, second:0}}},
-                        {rank: 14, discription: "Trophy presentation and news",  duration:{min:3, max:3}, player:"Evaluators", signal:  {green: {minute:2, second:0}, yellow:{minute:2,second:30}, red: {minute:3, second:0}}},
-                        {rank: 15, discription: "Meeting end",  duration:{min:1, max:1}, player:"Sandya", signal: {}}
+                        {rank: 12, discription: "Grammarian evaluation", duration:{min:3, max:3}, player:"Janet", signal: {green: {minute:2, second:0}, yellow:{minute:2,second:30}, red: {minute:3, second:0}}},
+                        {rank: 13, discription: "Time keeper evaluation", duration:{min:2, max:2}, player:"Scott", signal: {green: {minute:1, second:0}, yellow:{minute:1,second:30}, red: {minute:2, second:0}}},
+                        {rank: 14, discription: "General evaluation",  duration:{min:5, max:5}, player:"Samir", signal:  {green: {minute:3, second:0}, yellow:{minute:4,second:0}, red: {minute:5, second:0}}},
+                        {rank: 15, discription: "Trophy presentation and news",  duration:{min:3, max:3}, player:"Evaluators", signal:  {green: {minute:2, second:0}, yellow:{minute:2,second:30}, red: {minute:3, second:0}}},
+                        {rank: 16, discription: "Meeting end",  duration:{min:1, max:1}, player:"Sandya", signal: {}}
                       ]
                     }
 
@@ -187,17 +195,27 @@ export default {
       status: "Active",    
       })
       .then(function(docRef) {
-         
+        
           for (var i=0; i<agenda.items.length; i++){
-           cs.collection("agenda").doc("id").collection('items').doc(i.toString()).set(agenda.items[i]);
+          cs.collection("agenda").doc("id").collection('items').doc(i.toString()).set(agenda.items[i]);
           }
       })
       .catch(function(error) {
           console.error("Error adding document: ", error);
       });
-         
+        
+    },
+
+     deleteAgenda(){
+
+      cs.collection("agenda").doc("id").delete().then(function() {
+      console.log("Document successfully deleted!");
+      }).catch(function(error) {
+          console.error("Error removing document: ", error);
+      });
     }
-  },
+
+  }, 
 
   data () {
     return {
@@ -210,7 +228,8 @@ export default {
 
   created(){
       this.$binding("agendaItems", cs.collection('agenda').doc("id").collection("items")).then((agendaItem) => {
-      this.$data.agendaItems = _.sortBy(agendaItem,'rank');       
+      this.$data.agendaItems = _.sortBy(agendaItem,'rank'); 
+      this.reRank();      
   })
 
   }
