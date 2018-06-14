@@ -161,6 +161,9 @@ export default {
         this.$data.agendaItems = newList;
     },
 
+    dateToString(dte){
+      return dte.getDate() + "-" + (dte.getMonth() + 1) + "-" +  dte.getFullYear();
+    },
 
     addAgendaItem() {
 
@@ -185,25 +188,28 @@ export default {
                         {rank: 15, discription: "Trophy presentation and news",  duration:{min:3, max:3}, player:"Evaluators", signal:  {green: {minute:2, second:0}, yellow:{minute:2,second:30}, red: {minute:3, second:0}}},
                         {rank: 16, discription: "Meeting end",  duration:{min:1, max:1}, player:"Sandya", signal: {}}
                       ]
-                    }
+                    }         
 
-    //  var newPostKey = db.ref("agenda/-LE8N6Qoqyrw1IKygaV5").update(agenda);;
-
-      
-      cs.collection("agenda").doc("id").set({
+      var now = new Date();
+      var docId = this.$data.agendaDocId;
+      var agendaItems = this.$data.agendaItems;
+      var initialItemCount = this.$data.itemCountOnLoad;
+      cs.collection("agenda").doc(docId).set({
       date: new Date() ,
       status: "Active",    
       })
-      .then(function(docRef) {
-        
-          for (var i=0; i<agenda.items.length; i++){
-          cs.collection("agenda").doc("id").collection('items').doc(i.toString()).set(agenda.items[i]);
+      .then(function(docRef) {        
+          for (var i=0; i<agendaItems.length; i++){
+            cs.collection("agenda").doc(docId).collection('items').doc(i.toString()).set(agendaItems[i]);
+          }
+
+          for (var i= agendaItems.length ; i<=initialItemCount; i++){
+            cs.collection("agenda").doc(docId).collection('items').doc(i.toString()).delete();
           }
       })
       .catch(function(error) {
           console.error("Error adding document: ", error);
-      });
-        
+      });        
     },
 
      deleteAgenda(){
@@ -222,15 +228,29 @@ export default {
       msg: 'Aganda',
       fields: {rank:{key:'rank', label:' '}, discription:{key:'discription', label:' '}, duration:{key:'duration', label:' '}, edit:{key:'edit', label:' '}},
       agendaItems:[],
-      selectedItem:{}
+      selectedItem:{},
+      itemCountOnLoad:0,
+      agendaDocId:""
     }
   },
 
   created(){
-      this.$binding("agendaItems", cs.collection('agenda').doc("id").collection("items")).then((agendaItem) => {
-      this.$data.agendaItems = _.sortBy(agendaItem,'rank'); 
-      this.reRank();      
-  })
+
+    var that = this;
+
+    cs.collection('agenda').where("status","==","Active").orderBy("date", "desc").limit(1).get().then(function(querySnapshot) {  
+      
+      that.$data.agendaDocId = querySnapshot.docs[0].id;     
+      that.$binding("agendaItems", cs.collection('agenda').doc(that.$data.agendaDocId).collection("items")).then((agendaItem) => {
+        that.$data.agendaItems = _.sortBy(agendaItem,'rank'); 
+        that.reRank();
+
+        that.$data.itemCountOnLoad = that.$data.agendaItems.length;
+    }); 
+    
+    }).catch(function(error) {
+      console.log("Error getting document:", error);
+    });    
 
   }
 }
