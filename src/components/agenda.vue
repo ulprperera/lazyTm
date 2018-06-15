@@ -15,6 +15,7 @@
       </b-card-header>
 
       <template>
+      <div id="agendaItems">
         <b-table striped hover :fields="fields" :items="agendaItems" @row-clicked="selected">  
 
         <template slot="rank" slot-scope="data">
@@ -42,6 +43,7 @@
         </template>     
     
         </b-table>
+      </div>  
       </template>        
 
         <b-button-group size="sm">
@@ -55,8 +57,6 @@
     </b-card>   
     
   </div>
-
-
 </template>
 
 <script>
@@ -260,6 +260,12 @@ export default {
 
 .table td, .table th {   
     text-align: left;
+}
+
+#agendaItems{
+    overflow: auto;
+    display: flex;
+    height: 50vh;
 }
 
 </style>
