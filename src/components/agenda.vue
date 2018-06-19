@@ -16,31 +16,46 @@
 
       <template>
       <div id="agendaItems">
-        <b-table striped hover :fields="fields" :items="agendaItems" @row-clicked="selected">  
+        <b-table striped hover :fields="fields" :items="agendaItems" @row-clicked="selected">          
 
-        <template slot="rank" slot-scope="data">
-            <input type="text" v-model="data.item.rank"> </input>
+        <template slot="time" slot-scope="data">     
+        {{ data.item.time.hour|00}} : {{data.item.time.minute|00}}      
         </template>
 
         <template slot="discription" slot-scope="data">
-          <input type="text" v-model="data.item.discription"> </input>
+          <input class="editableAgendaItem longText" type="text" v-model="data.item.discription"> </input>
         </template>
 
         <template slot="duration" slot-scope="data">
-            <div v-if="data.item.duration.min>0">
-              <input type="text" v-model="data.item.duration.min"> </input>
+            <div style="display:inline" v-if="data.item.duration.min>0">
+              <input class="editableAgendaItem shortText inline alignRight" type="text" v-model="data.item.duration.min"> </input>
               to 
             </div>
-            <input type="text" v-model="data.item.duration.max"> </input>  
+            <input class="editableAgendaItem shortText inline" type="text" v-model="data.item.duration.max"> </input>  
             minutes 
             <b-button v-on:click="toggleDuration(data.item.rank)" >
               <span v-if="data.item.duration.min >=0">Single</span>
               <span v-if="data.item.duration.min <0">Range</span> </b-button>          
         </template>  
+      
 
-        <template slot="edit" slot-scope="data">
-          <b-button size="sm" class="mr-2" v-on:click="test(data)">Edit</b-button>
-        </template>     
+        <template slot="signal" slot-scope="data"> 
+        <div v-if="data.item.signal.green" class="inline">
+          G <input  class="editableAgendaItem shortText inline alignRight" type="text" v-model="data.item.signal.green.minute"></input>
+           :<input  class="editableAgendaItem shortText inline" type="text" v-model="data.item.signal.green.second"></input>
+         </div>
+
+        <div v-if="data.item.signal.yellow" class="inline">
+          Y <input  class="editableAgendaItem shortText inline alignRight" type="text" v-model="data.item.signal.yellow.minute"></input>
+           :<input  class="editableAgendaItem shortText inline" type="text" v-model="data.item.signal.yellow.second"></input>
+         </div>
+
+        <div v-if="data.item.signal.red" class="inline">
+          R <input  class="editableAgendaItem shortText inline alignRight" type="text" v-model="data.item.signal.red.minute"></input>
+           :<input  class="editableAgendaItem shortText inline" type="text" v-model="data.item.signal.red.second"></input>
+         </div>                 
+        </template> 
+
     
         </b-table>
       </div>  
@@ -48,8 +63,7 @@
 
         <b-button-group size="sm">
         <b-button v-on:click="addAgendaItem" >Add From Roster</b-button>      
-        <b-button v-on:click="updateRecord" >Update</b-button>
-        
+        <b-button v-on:click="updateRecord" >Update</b-button>        
         </b-button-group>
 
       <b-card-footer>This is a footer</b-card-footer>
@@ -58,12 +72,12 @@
     
   </div>
 </template>
-
 <script>
 
 import {db} from '../firebase'
 import {cs} from '../firebase'
 import {_} from 'vue-underscore';
+
 
 export default { 
   
@@ -167,29 +181,6 @@ export default {
 
     addAgendaItem() {
 
-      var agenda =  {                   
-                    date:"Tomorrow",
-                    status:"active", //now, completed
-                    items:[
-                        {rank: 1, discription: "Arrive and settle in", duration:{min:10, max:10}, player:'All', signal: {} },
-                        {rank: 2, discription: "Welcome ro members and guests", duration:{min:3, max:3}, player:"Sandya", signal:  {green: {minute:2, second:0}, yellow:{minute:2,second:30}, red: {minute:3, second:0}}},
-                        {rank: 3, discription: "Word of the day/grammarian", duration:{min:2, max:2}, player:"janet", signal: {green: {minute:1, second:0}, yellow:{minute:1,second:30}, red: {minute:2, second:0}} },
-                        {rank: 4, discription: "Table topics", duration:{min:8, max:8}, player:"Leandro", signal: {}},
-                        {rank: 5, discription: "Introduction to prepared speech 1", duration:{min:2, max:2}, player:"Annie", signal: {green: {minute:1, second:0}, yellow:{minute:1,second:30}, red: {minute:2, second:0}}},
-                        {rank: 6, discription: "Prepared speech 1", duration:{min:5, max:7}, player:'Roshan', signal:  {green: {minute:5, second:0}, yellow:{minute:6,second:0}, red: {minute:7, second:0}}},
-                        {rank: 7, discription: "Introduction to prepared speech 2", duration:{min:2, max:2}, player:"Jason", signal: {green: {minute:1, second:0}, yellow:{minute:1,second:30}, red: {minute:2, second:0}}},
-                        {rank: 8, discription: "Prepared speech 2", duration:{min:5, max:7}, player:"Stephanie", signal:  {green: {minute:5, second:0}, yellow:{minute:6,second:0}, red: {minute:7, second:0}}},
-                        {rank: 9, discription: "Table topics evaluation", duration:{min:6, max:6}, player:"Harpreet/Mel", signal: {green: {minute:4, second:0}, yellow:{minute:5,second:30}, red: {minute:6, second:0}}},
-                        {rank: 10, discription: "Evaluation of prepared speech 1", duration:{min:3, max:3}, player:"Annie", signal: {green: {minute:2, second:0}, yellow:{minute:2,second:30}, red: {minute:3, second:0}}},
-                        {rank: 11, discription: "Evaluation of prepared speech 2", duration:{min:3, max:3}, player:"Jason", signal: {green: {minute:2, second:0}, yellow:{minute:2,second:30}, red: {minute:3, second:0}}},
-                        {rank: 12, discription: "Grammarian evaluation", duration:{min:3, max:3}, player:"Janet", signal: {green: {minute:2, second:0}, yellow:{minute:2,second:30}, red: {minute:3, second:0}}},
-                        {rank: 13, discription: "Time keeper evaluation", duration:{min:2, max:2}, player:"Scott", signal: {green: {minute:1, second:0}, yellow:{minute:1,second:30}, red: {minute:2, second:0}}},
-                        {rank: 14, discription: "General evaluation",  duration:{min:5, max:5}, player:"Samir", signal:  {green: {minute:3, second:0}, yellow:{minute:4,second:0}, red: {minute:5, second:0}}},
-                        {rank: 15, discription: "Trophy presentation and news",  duration:{min:3, max:3}, player:"Evaluators", signal:  {green: {minute:2, second:0}, yellow:{minute:2,second:30}, red: {minute:3, second:0}}},
-                        {rank: 16, discription: "Meeting end",  duration:{min:1, max:1}, player:"Sandya", signal: {}}
-                      ]
-                    }         
-
       var now = new Date();
       var docId = this.$data.agendaDocId;
       var agendaItems = this.$data.agendaItems;
@@ -219,20 +210,46 @@ export default {
       }).catch(function(error) {
           console.error("Error removing document: ", error);
       });
-    }
+    },
+     updateTime()
+    {
+       var statTime = {hour:17, minute:20}
+       var agendaItems = [];
 
+       var firstItem = this.$data.agendaItems[0];       
+       firstItem.time = {hour:statTime.hour,  minute:statTime.minute};
+       agendaItems.push(firstItem);
+
+        for (var i=1; i<this.$data.agendaItems.length; i++ ){
+        
+          var item = this.$data.agendaItems[i];
+          var min =  agendaItems[i-1].time.minute + this.$data.agendaItems[i-1].duration.max;
+          var hr =  agendaItems[i-1].time.hour;
+
+          if (min >=60)
+          {
+            min = min-60;
+            hr++;
+          }
+
+          item.time = {minute:min, hour:hr};         
+          agendaItems.push(item);
+        }
+        this.$data.agendaItems =  agendaItems;
+        
+      },
   }, 
 
   data () {
     return {
       msg: 'Aganda',
-      fields: {rank:{key:'rank', label:' '}, discription:{key:'discription', label:' '}, duration:{key:'duration', label:' '}, edit:{key:'edit', label:' '}},
+      fields: {time:{key:'time', label:' '}, discription:{key:'discription', label:' '}, duration:{key:'duration', label:' '}, signal:{key:'signal', label:' '}},
       agendaItems:[],
       selectedItem:{},
       itemCountOnLoad:0,
       agendaDocId:""
     }
-  },
+  }, 
 
   created(){
 
@@ -244,7 +261,7 @@ export default {
       that.$binding("agendaItems", cs.collection('agenda').doc(that.$data.agendaDocId).collection("items")).then((agendaItem) => {
         that.$data.agendaItems = _.sortBy(agendaItem,'rank'); 
         that.reRank();
-
+        that.updateTime();
         that.$data.itemCountOnLoad = that.$data.agendaItems.length;
     }); 
     
@@ -266,6 +283,32 @@ export default {
     overflow: auto;
     display: flex;
     height: 50vh;
+}
+.editableAgendaItem{
+    border: 0px;
+    background: none;
+}
+.longText{
+  width:300px;
+}
+.shortText
+{
+   width:20px;
+  
+}
+.alignRight{
+ text-align:right;
+}
+
+.table td, .table th
+{
+  padding:0px;
+  vertical-align:middle;
+  line-height:1;  
+}
+
+.inline{
+display:inline;
 }
 
 </style>

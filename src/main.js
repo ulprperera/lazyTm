@@ -9,15 +9,19 @@ import jsPDF from 'jsPDF'
 import  './firebase'
 import vueFire from 'vueFire'
 import VueFirestore from 'vue-firestore'
-import underscore from 'vue-underscore';
-
 require('firebase/firestore')
+
+var numeral = require("numeral");
+
+  Vue.filter("00", function (value) {
+    return numeral(value).format("00"); 
+  });
 
 
 Vue.use(bootstrapVue);
 Vue.use(vueFire)
 Vue.use(VueFirestore)
-Vue.use(underscore);
+
 
 new Vue({
   el: '#app',
