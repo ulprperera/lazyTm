@@ -1,17 +1,44 @@
 <template>
   <div class="agenda">   
     <b-card title="Agenda" >
-
       <b-card-header>      
-          <b-button-group size="sm">
-          <b-button v-on:click="moveUp()" >Move Up </b-button>
+
+
+          <div id="themeDiv">
+
+          
+                       
+            <div id="imageDiv" >
+                <img class="preview" :src="imageData">
+            </div>
+
+
+            <div id="messageDiv">
+            This is the message
+            </div>
+
+           </div>
+
+          
+
+          
+
+       <b-button-toolbar aria-label="Toolbar with button groups and dropdown menu">
+          <div class="input-group">
+           <input type="file" @change="previewImage" accept="image/*">
+          </div>
+
+         <b-button-group class="mx-5">
+         
+          <b-button v-on:click="moveUp()">Move Up </b-button>
           <b-button v-on:click="moveDown()" >Move Down</b-button>
           <b-button v-on:click="addNew()" >Add New</b-button>
           <b-button v-on:click="remove()" >Remove</b-button>
 
            <b-button v-on:click="deleteAgenda()" >Test</b-button>
         
-          </b-button-group>
+         </b-button-group>
+          </b-button-toolbar>
       </b-card-header>
 
       <template>
@@ -238,6 +265,29 @@ export default {
         this.$data.agendaItems =  agendaItems;
         
       },
+
+
+        previewImage: function(event) {
+            // Reference to the DOM input element
+            var input = event.target;
+            // Ensure that you have a file before attempting to read it
+            if (input.files && input.files[0]) {
+                // create a new FileReader to read this image and convert to base64 format
+                var reader = new FileReader();
+                // Define a callback function to run, when FileReader finishes its job
+                reader.onload = (e) => {
+                    // Note: arrow function used here, so that "this.imageData" refers to the imageData of Vue component
+                    // Read image as base64 and set to imageData
+                    this.imageData = e.target.result;
+                }
+                // Start the reader job - read file as a data url (base64 format)
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    
+
+
+
   }, 
 
   data () {
@@ -247,7 +297,8 @@ export default {
       agendaItems:[],
       selectedItem:{},
       itemCountOnLoad:0,
-      agendaDocId:""
+      agendaDocId:"",
+      imageData: "" 
     }
   }, 
 
@@ -310,5 +361,34 @@ export default {
 .inline{
 display:inline;
 }
+
+#themeDiv{
+  height:220px;
+   
+ 
+}
+
+.imageDiv{
+  width:200px; 
+  background:gray;
+  height:200px;
+  padding-bottom:20px;  
+  }ok
+
+.preview{
+
+max-width:200px;
+max-height:200px
+
+}
+
+.card-header{
+  padding:0px;
+}
+
+.btn-toolbar{
+  background:gray;  
+}
+
 
 </style>
