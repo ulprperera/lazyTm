@@ -14,7 +14,11 @@
 
 
             <div id="messageDiv">
-            This is the message
+           
+                <div class="headerItem"> Toastmaster {{this.toastmaster}}</div> <br>
+                <div class="headerItem"> Theme  <input class="editableAgendaItem longText" type="text" v-model="this.theme"> </input> </div><br>
+                <div class="headerItem"> Venue <input class="editableAgendaItem longText" type="text" v-model="this.venue"> </input> </div><br>
+                <div class="headerItem"> Toastmaster values <input class="editableAgendaItem longText" type="text" v-model="this.values"> </input> </div><br>
             </div>
 
            </div>
@@ -54,7 +58,7 @@
         </template>
 
         <template slot="player" slot-scope="data">
-          <input class="editableAgendaItem longText" type="text" v-model="data.item.player"> </input>
+          <input class="editableAgendaItem" type="text" v-model="data.item.player"> </input>
         </template>
 
 
@@ -384,7 +388,11 @@ export default {
       agendaDocId:"",
       imageData: "",
       imageHeight:0,
-      imageWidth:0 
+      imageWidth:0, 
+      toastmaster: "Roshan Perera",
+      theme: "Save the World",
+      venue: "Food & Plant Research",
+      values: "Respect, Integrity, Service, Excellence"
     }
   }, 
 
@@ -454,18 +462,22 @@ display:inline;
  
 }
 
-.imageDiv{
+#imageDiv{
   width:200px; 
   background:gray;
   height:200px;
   padding-bottom:20px;  
-  }ok
+  float:left;
+}
+
+#messageDiv{  
+  padding:20px;
+  
+}
 
 .preview{
-
-max-width:200px;
-max-height:200px
-
+  max-width:200px;
+  max-height:200px;
 }
 
 .card-header{
@@ -476,5 +488,10 @@ max-height:200px
   background:gray;  
 }
 
+.headerItem{
+  text-align:left;  
+  display:block;
+  padding-left:250px;
+}
 
 </style>
