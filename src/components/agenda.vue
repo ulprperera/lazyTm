@@ -1,5 +1,5 @@
 <template>
-  <div class="agenda">   
+  <div class="agenda" ref="content">   
     <b-card title="Agenda" >
       <b-card-header>      
 
@@ -35,7 +35,7 @@
           <b-button v-on:click="addNew()" >Add New</b-button>
           <b-button v-on:click="remove()" >Remove</b-button>
 
-           <b-button v-on:click="deleteAgenda()" >Test</b-button>
+           <b-button v-on:click="generatePdf()" >Test</b-button>
         
          </b-button-group>
           </b-button-toolbar>
@@ -52,6 +52,11 @@
         <template slot="discription" slot-scope="data">
           <input class="editableAgendaItem longText" type="text" v-model="data.item.discription"> </input>
         </template>
+
+        <template slot="player" slot-scope="data">
+          <input class="editableAgendaItem longText" type="text" v-model="data.item.player"> </input>
+        </template>
+
 
         <template slot="duration" slot-scope="data">
             <div style="display:inline" v-if="data.item.duration.min>0">
@@ -104,7 +109,7 @@
 import {db} from '../firebase'
 import {cs} from '../firebase'
 import {_} from 'vue-underscore';
-
+var numeral = require("numeral");
 
 export default { 
   
@@ -267,7 +272,10 @@ export default {
       },
 
 
-        previewImage: function(event) {
+        previewImage(event) {
+
+            var that = this;
+
             // Reference to the DOM input element
             var input = event.target;
             // Ensure that you have a file before attempting to read it
@@ -282,10 +290,86 @@ export default {
                 }
                 // Start the reader job - read file as a data url (base64 format)
                 reader.readAsDataURL(input.files[0]);
-            }
-        }
-    
 
+                var file = input.files[0];  
+                var img = new Image();
+                img.src = window.URL.createObjectURL( file );
+
+                img.onload = function() {
+                that.imageWidth = img.naturalWidth;
+                that.imageHeight = img.naturalHeight;
+                window.URL.revokeObjectURL( img.src );            
+              };
+            }
+        },
+    
+        generatePdf(e)
+        {
+          
+
+        
+          var doc = new jsPDF();        
+          doc.setFont("helvetica"); 
+
+          doc.setFontSize(16);
+          doc.text("Aganda", 100, 10);
+
+          var maxImgDim = 60;
+          var imgWidth = maxImgDim;
+          var imgHeight = maxImgDim;        
+
+          if (this.$data.imageWidth > this.$data.imageHeight ) imgHeight = this.$data.imageHeight / this.$data.imageWidth * maxImgDim;
+          else imgWidth = this.$data.imageWidth/this.$data.imageHeight * maxImgDim
+          
+
+          doc.addImage(this.imageData, 'JPEG', 15, 20, imgWidth, imgHeight);
+          doc.setFontSize(9);
+  
+          this.$data.agendaItems.forEach(function(item,index) {
+
+            var itemStartY = 80
+
+            var time = numeral(item.time.hour).format("00") + ": " + numeral(item.time.minute).format("00")
+            doc.text(time, 15, itemStartY + 10*index);
+
+            doc.text(item.discription, 30, itemStartY + 10*index);   
+
+            doc.text(item.player, 85, itemStartY + 10*index);          
+
+            var duration =  item.duration.max + " minutes";
+            if (item.duration.min > 0 && item.duration.min != item.duration.max) duration = item.duration.min + " - " + item.duration.max + " minutes";
+            doc.text(duration, 115, itemStartY + 10*index);
+           
+            var signal="";
+            if (item.signal){
+
+                if (item.signal.green && item.signal.green.minute)
+                {
+                  signal = signal + "G " +  numeral(item.signal.green.minute).format("00");
+                  if (item.signal.green.second) signal = signal + ":" + numeral(item.signal.green.second).format("00");
+                  else signal = signal + ":00";                  
+                }
+
+                if (item.signal.yellow && item.signal.yellow.minute)
+                {
+                  signal = signal + "  Y " +  numeral(item.signal.yellow.minute).format("00");
+                  if (item.signal.yellow.second) signal = signal + ":" + numeral(item.signal.yellow.second).format("00");
+                  else signal = signal + ":00";                  
+                }
+
+                if (item.signal.red && item.signal.red.minute)
+                {
+                  signal = signal + "  R " +  numeral(item.signal.red.minute).format("00");
+                  if (item.signal.red.second) signal = signal + ":" + numeral(item.signal.red.second).format("00");
+                  else signal = signal + ":00";                  
+                } 
+                  doc.text(signal, 145, itemStartY + 10*index);                  
+            }
+
+          });
+
+          doc.save('sample-file.pdf');                      
+        }
 
 
   }, 
@@ -293,12 +377,14 @@ export default {
   data () {
     return {
       msg: 'Aganda',
-      fields: {time:{key:'time', label:' '}, discription:{key:'discription', label:' '}, duration:{key:'duration', label:' '}, signal:{key:'signal', label:' '}},
+      fields: {time:{key:'time', label:' '}, discription:{key:'discription', label:' '}, player:{key:'player', label:' '}, duration:{key:'duration', label:' '}, signal:{key:'signal', label:' '}},
       agendaItems:[],
       selectedItem:{},
       itemCountOnLoad:0,
       agendaDocId:"",
-      imageData: "" 
+      imageData: "",
+      imageHeight:0,
+      imageWidth:0 
     }
   }, 
 

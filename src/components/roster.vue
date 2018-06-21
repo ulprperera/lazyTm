@@ -1,7 +1,6 @@
 
 <template>
-  <div class="roster">
-
+  <div class="roster" ref="content">
 
     <h1>{{ msg }}</h1>
 
@@ -43,14 +42,32 @@ export default {
 
         
 
-         doc.autoTable(col, rows);
+       //  doc.autoTable(col, rows);
 
-          doc.save('Test.pdf');
+       //   doc.save('Test.pdf');
 
 
         //var doc = new jsPDF();
         //doc.text("Hello World", 10, 10);
         //doc.save("pdfName" + '.pdf');
+
+        var specialElementHandlers = {
+            '#editor': function (element, renderer) {
+            return true;
+          }
+        };
+
+
+        var content  = this.$refs.content;
+
+        doc.fromHTML(content.innerHTML, 15, 15, {
+          'width': 170,
+          'elementHandlers': specialElementHandlers
+          
+        });
+    doc.save('sample-file.pdf');
+
+
     }
 
   },
