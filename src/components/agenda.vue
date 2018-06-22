@@ -3,46 +3,48 @@
     <b-card title="Agenda" >
       <b-card-header>      
 
+          <b-container>
+              <b-row>
+                  <b-col cols="3">
+                    <b-row>
+                      <div id="imageDiv" >
+                        <img class="preview" :src="imageData">
+                      </div>
+                    </b-row>
 
-          <div id="themeDiv">
-
+                    <b-row>
+                      <div class="input-group">
+                        <input type="file" @change="previewImage" accept="image/*">
+                      </div>
+                    </b-row>                    
+                  </b-col>
+                  <b-col cols="8">
+                     <div id="messageDiv">           
+                        <div class="headerItem"> Toastmaster {{this.toastmaster}}</div> <br>
+                        <div class="headerItem"> Theme  <input class="editableAgendaItem longText" type="text" v-model="this.theme"> </input> </div><br>
+                        <div class="headerItem"> Venue <input class="editableAgendaItem longText" type="text" v-model="this.venue"> </input> </div><br>
+                        <div class="headerItem"> Toastmaster values <input class="editableAgendaItem longText" type="text" v-model="this.values"> </input> </div><br>
+                    </div>
+                  </b-col>
+                  <b-col cols="1">
+                    <div class="buttonPanel">
+                    
+                        <b-button-group vertical>                      
+                          <b-button v-on:click="moveUp()"class="btn-outline-primary">Move Up </b-button>
+                          <b-button v-on:click="moveDown()" class="btn-outline-primary">Move Down</b-button>
+                          <b-button v-on:click="addNew()" class="btn-outline-primary">Add New</b-button>
+                          <b-button v-on:click="remove()" class="btn-outline-primary">Remove</b-button>
+                          <b-button v-on:click="generatePdf()" class="btn-outline-primary">test</b-button>                      
+                        </b-button-group>
+                     
+                    </div>         
+                  </b-col>
+                 
+              </b-row>
+          </b-container>       
           
-                       
-            <div id="imageDiv" >
-                <img class="preview" :src="imageData">
-            </div>
 
-
-            <div id="messageDiv">
-           
-                <div class="headerItem"> Toastmaster {{this.toastmaster}}</div> <br>
-                <div class="headerItem"> Theme  <input class="editableAgendaItem longText" type="text" v-model="this.theme"> </input> </div><br>
-                <div class="headerItem"> Venue <input class="editableAgendaItem longText" type="text" v-model="this.venue"> </input> </div><br>
-                <div class="headerItem"> Toastmaster values <input class="editableAgendaItem longText" type="text" v-model="this.values"> </input> </div><br>
-            </div>
-
-           </div>
-
-          
-
-          
-
-       <b-button-toolbar aria-label="Toolbar with button groups and dropdown menu">
-          <div class="input-group">
-           <input type="file" @change="previewImage" accept="image/*">
-          </div>
-
-         <b-button-group class="mx-5">
-         
-          <b-button v-on:click="moveUp()">Move Up </b-button>
-          <b-button v-on:click="moveDown()" >Move Down</b-button>
-          <b-button v-on:click="addNew()" >Add New</b-button>
-          <b-button v-on:click="remove()" >Remove</b-button>
-
-           <b-button v-on:click="generatePdf()" >Test</b-button>
-        
-         </b-button-group>
-          </b-button-toolbar>
+      
       </b-card-header>
 
       <template>
@@ -50,7 +52,7 @@
         <b-table striped hover :fields="fields" :items="agendaItems" @row-clicked="selected">          
 
         <template slot="time" slot-scope="data">     
-        {{ data.item.time.hour|00}} : {{data.item.time.minute|00}}      
+        <span v-if="data.item.time && data.item.time.hour && data.item.time.minute">{{ data.item.time.hour|00}} : {{data.item.time.minute|00}}</span>      
         </template>
 
         <template slot="discription" slot-scope="data">
@@ -69,15 +71,15 @@
             </div>
             <input class="editableAgendaItem shortText inline" type="text" v-model="data.item.duration.max"> </input>  
             minutes 
-            <b-button v-on:click="toggleDuration(data.item.rank)" >
-              <span v-if="data.item.duration.min >=0">Single</span>
-              <span v-if="data.item.duration.min <0">Range</span> </b-button>          
+            <button v-on:click="toggleDuration(data.item.rank)" class="btn btn-link">
+              <span v-if="data.item.duration.min >=0">(Single)</span>
+              <span v-if="data.item.duration.min <0" >(Range)</span> </button>          
         </template>  
       
 
         <template slot="signal" slot-scope="data"> 
         <div v-if="data.item.signal.green" class="inline">
-          G <input  class="editableAgendaItem shortText inline alignRight" type="text" v-model="data.item.signal.green.minute"></input>
+          G <input  class="editableAgendaItem shortText inline alignRight" type="text" v-model="data.item.signal.green.minute" v-on:blur="formatSignal"></input>
            :<input  class="editableAgendaItem shortText inline" type="text" v-model="data.item.signal.green.second"></input>
          </div>
 
@@ -206,9 +208,41 @@ export default {
       for (var i=0; i<this.$data.agendaItems.length; i++ )
       {     
         this.$data.agendaItems[i].rank = i+1;
+        this.$data.agendaItems[i] = this.setFormatting(this.$data.agendaItems[i]);
         newList.push(this.$data.agendaItems[i]);      
       }
         this.$data.agendaItems = newList;
+    },
+
+    setFormatting(item) {
+
+        if (item.signal){
+            
+         if (item.signal.green) {
+          if ( item.signal.green.minute.toString().length==1)
+            item.signal.green.minute = "0" + item.signal.green.minute.toString();
+
+           if (item.signal.green.second.toString().length==1)
+            item.signal.green.second = "0" + item.signal.green.second.toString();   
+         }  
+
+         if (item.signal.yellow) {
+          if (item.signal.yellow.minute.toString().length==1)
+            item.signal.yellow.minute = "0" + item.signal.yellow.minute.toString();
+
+           if ( item.signal.yellow.second.toString().length==1)
+            item.signal.yellow.second = "0" + item.signal.yellow.second.toString();   
+         } 
+
+         if (item.signal.red) {
+          if (item.signal.red.minute.toString().length==1)
+            item.signal.red.minute = "0" + item.signal.red.minute.toString();
+
+           if (item.signal.red.second.toString().length==1)
+            item.signal.red.second = "0" + item.signal.red.second.toString();   
+         }           
+        }
+        return item;
     },
 
     dateToString(dte){
@@ -247,7 +281,7 @@ export default {
           console.error("Error removing document: ", error);
       });
     },
-     updateTime()
+    updateTime()
     {
        var statTime = {hour:17, minute:20}
        var agendaItems = [];
@@ -308,10 +342,7 @@ export default {
         },
     
         generatePdf(e)
-        {
-          
-
-        
+        {        
           var doc = new jsPDF();        
           doc.setFont("helvetica"); 
 
@@ -373,9 +404,12 @@ export default {
           });
 
           doc.save('sample-file.pdf');                      
-        }
+        },
 
-
+      formatSignal()
+      {
+        alert("ok");
+      }
   }, 
 
   data () {
@@ -399,7 +433,6 @@ export default {
   created(){
 
     var that = this;
-
     cs.collection('agenda').where("status","==","Active").orderBy("date", "desc").limit(1).get().then(function(querySnapshot) {  
       
       that.$data.agendaDocId = querySnapshot.docs[0].id;     
@@ -421,7 +454,11 @@ export default {
 <style>
 
 .table td, .table th {   
-    text-align: left;
+  text-align: left;
+}
+
+.container{
+  margin:0px;  
 }
 
 #agendaItems{
@@ -432,6 +469,7 @@ export default {
 .editableAgendaItem{
     border: 0px;
     background: none;
+    color: #0d08f9
 }
 .longText{
   width:300px;
@@ -456,42 +494,50 @@ export default {
 display:inline;
 }
 
-#themeDiv{
-  height:220px;
-   
- 
-}
-
 #imageDiv{
   width:200px; 
-  background:gray;
+  background:#dceaf9;
   height:200px;
-  padding-bottom:20px;  
+  margin-bottom:15px;  
   float:left;
+  border-radius:5px;
+  display: flex;
+  align-items: center; 
 }
 
 #messageDiv{  
-  padding:20px;
-  
+  padding-top: 20px;
 }
 
 .preview{
   max-width:200px;
-  max-height:200px;
+  max-height:200px; 
 }
 
-.card-header{
-  padding:0px;
+.buttonPanel{
+  padding-top: 20px;
 }
-
 .btn-toolbar{
   background:gray;  
 }
 
 .headerItem{
   text-align:left;  
-  display:block;
-  padding-left:250px;
+  display:block; 
+}
+.btn{
+  margin-bottom:5px;
+  border-radius:5px!import;
+}
+
+input[type="file"] {
+    width:100px;
+}
+
+@media only screen and  (min-width: 1200px){
+  .container {
+      max-width:1250px; 
+  }
 }
 
 </style>

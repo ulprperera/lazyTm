@@ -17,11 +17,9 @@ var numeral = require("numeral");
     return numeral(value).format("00"); 
   });
 
-
 Vue.use(bootstrapVue);
 Vue.use(vueFire)
 Vue.use(VueFirestore)
-
 
 new Vue({
   el: '#app',

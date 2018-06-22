@@ -7,6 +7,9 @@ function resolve (dir) {
 }
 
 module.exports = {
+  node: {
+    fs: 'empty'
+  },
   entry: './src/main.js',
   output: {
     path: path.resolve(__dirname, './dist'),
@@ -87,5 +90,6 @@ if (process.env.NODE_ENV === 'production') {
     new webpack.LoaderOptionsPlugin({
       minimize: true
     })
+    
   ])
 }

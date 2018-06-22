@@ -10,5 +10,9 @@ const app = initializeApp({
     messagingSenderId: "185516086224" 
 });
 
+const settings = {timestampsInSnapshots: true};
+app.firestore().settings(settings)
+
+
 export const db=app.database();
 export const cs = app.firestore();
