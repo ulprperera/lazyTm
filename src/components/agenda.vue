@@ -1,5 +1,12 @@
 <template>
-  <div class="agenda" ref="content">   
+  <div class="agenda" ref="content">  
+
+      <b-modal ref="tableTopicsModal" hide-footer title="Using Component Methods">
+        <div class="d-block text-center">
+            <h3>Hello From My Modal!</h3>
+        </div>      
+      </b-modal>
+
     <b-card title="Agenda" >
       <b-card-header>     
 
@@ -121,8 +128,10 @@
 
     </b-card>   
     
-  </div>
+  </div>  
+
 </template>
+
 <script>
 
 import {db} from '../firebase'
@@ -416,10 +425,15 @@ export default {
 
       startItem(item){
 
-      }
+        if (item.discription.toLowerCase().trim() === "table topics") {
+            this.$refs.tableTopicsModal.show()
+        }
+
+      },
+
       stopItem(item){
 
-      }
+      },
 
       addTableTopicSpeker(){
 
