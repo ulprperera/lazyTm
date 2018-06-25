@@ -31,10 +31,10 @@
                       <div class="buttonPanel">
                     
                         <b-button-group vertical>                      
-                          <b-button v-on:click=""class="btn-outline-primary">Start Session</b-button>
+                          <b-button v-on:click="startSession()"class="btn-outline-primary">Start Session</b-button>
+                          <b-button v-on:click="saveAgendaItem" class="btn-outline-primary">Update</b-button>      
                           <b-button v-on:click="" class="btn-outline-primary">Archive</b-button>                                             
-                        </b-button-group>
-                     
+                        </b-button-group>                     
                     </div>         
 
                   </b-col>                 
@@ -109,20 +109,15 @@
           </template> 
 
           <template slot="start" slot-scope="data"> 
-             <b-button v-on:click="startItem(data.item)"class="btn-outline-primary">Start</b-button>
+             <b-button v-if="sessionStarted" v-on:click="startItem(data.item)"class="btn-outline-primary">Start</b-button>
           </template> 
           <template slot="stop" slot-scope="data"> 
-             <b-button v-on:click="stopItem(data.item)"class="btn-outline-primary">Stop</b-button>
+             <b-button v-on:click="stopItem(data.item)"class="btn-outline-primary" v-if="sessionStarted">Stop</b-button>
           </template> 
     
         </b-table>
       </div>  
       </template>        
-
-        <b-button-group size="sm">
-        <b-button v-on:click="addAgendaItem" >Add From Roster</b-button>      
-        <b-button v-on:click="updateRecord" >Update</b-button>        
-        </b-button-group>
 
       <b-card-footer>This is a footer</b-card-footer>
 
@@ -142,22 +137,7 @@ var numeral = require("numeral");
 export default { 
   
   methods:{
-
-      updateRecord(){
-          cs.collection('agenda').doc("id").collection("items").doc('1').get()   
-          
-          .then(function(querySnapshot) {
-              console.log(querySnapshot);
-
-              querySnapshot = {rank: 2, discription: "la la la", duration:{min:3, max:3}, player:"Sandya", signal:  {green: {minute:2, second:0}, yellow:{minute:2,second:30}, red: {minute:3, second:0}}}
-              cs.collection("agenda").doc("id").collection('items').doc("1").set(querySnapshot);
-
-          })
-          .catch(function(error) {
-              console.error("Error adding document: ", error);
-          });
-      },   
-
+     
       selected(data){    
         this.clearSelection();
         this.$data.agendaItems[data.rank -1]._rowVariant = 'danger';
@@ -270,7 +250,7 @@ export default {
         return dte.getDate() + "-" + (dte.getMonth() + 1) + "-" +  dte.getFullYear();
       },
 
-      addAgendaItem() {
+      saveAgendaItem() {
 
         var now = new Date();
         var docId = this.$data.agendaDocId;
@@ -278,7 +258,16 @@ export default {
         var initialItemCount = this.$data.itemCountOnLoad;
         cs.collection("agenda").doc(docId).set({
         date: new Date() ,
-        status: "Active",    
+        status: "Active",   
+
+        imageData: this.$data.imageData,
+        imageHeight:this.$data.imageHeight,
+        imageWidth:this.$data.imageWidth,
+        toastmaster: this.$data.toastmaster,
+        theme: this.$data.theme,
+        venue: this.$data.venue,
+        values: this.$data.values,
+
         })
         .then(function(docRef) {        
             for (var i=0; i<agendaItems.length; i++){
@@ -301,6 +290,7 @@ export default {
             console.error("Error removing document: ", error);
         });
       },
+
       updateTime(){
        var statTime = {hour:17, minute:20}
        var agendaItems = [];
@@ -359,8 +349,7 @@ export default {
           }
       },
     
-      generatePdf(e)
-      {        
+      generatePdf(e){        
         var doc = new jsPDF();        
         doc.setFont("helvetica"); 
 
@@ -423,12 +412,14 @@ export default {
         doc.save('sample-file.pdf');                      
       },  
 
-      startItem(item){
+      startSession(){
+        this.$data.sessionStarted = true;
+      },
 
+      startItem(item){
         if (item.discription.toLowerCase().trim() === "table topics") {
             this.$refs.tableTopicsModal.show()
         }
-
       },
 
       stopItem(item){
@@ -437,9 +428,7 @@ export default {
 
       addTableTopicSpeker(){
 
-      },  
-
-        
+      },         
          
   }, 
 
@@ -454,10 +443,11 @@ export default {
       imageData: "",
       imageHeight:0,
       imageWidth:0, 
-      toastmaster: "Roshan Perera",
-      theme: "Save the World",
-      venue: "Food & Plant Research",
-      values: "Respect, Integrity, Service, Excellence"
+      toastmaster: "",
+      theme: "",
+      venue: "",
+      values: "",
+      sessionStarted:false
     }
   }, 
 
@@ -465,10 +455,26 @@ export default {
 
     var that = this;
     cs.collection('agenda').where("status","==","Active").orderBy("date", "desc").limit(1).get().then(function(querySnapshot) {  
+          
+      that.$data.agendaDocId = querySnapshot.docs[0].id; 
+
+      cs.collection('agenda').doc(that.$data.agendaDocId).get().then(function(item) {  
+
+        var agenda = item.data();
+
+        that.$data.imageData = agenda.imageData;
+        that.$data.imageHeight = agenda.imageHeight;
+        that.$data.imageWidth = agenda.imageWidth; 
+        that.$data.toastmaster = agenda.toastmaster;
+        that.$data.theme = agenda.theme;
+        that.$data.venue = agenda.venue;
+        that.$data.values = agenda.values;
       
-      that.$data.agendaDocId = querySnapshot.docs[0].id;     
+      });
+
       that.$binding("agendaItems", cs.collection('agenda').doc(that.$data.agendaDocId).collection("items")).then((agendaItem) => {
-        that.$data.agendaItems = _.sortBy(agendaItem,'rank'); 
+        that.$data.agendaItems = _.sortBy(agendaItem,'rank');     
+
         that.reRank();
         that.updateTime();
         that.$data.itemCountOnLoad = that.$data.agendaItems.length;
