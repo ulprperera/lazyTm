@@ -8,8 +8,7 @@
       </b-modal>
 
     <b-card title="Agenda" >
-      <b-card-header>     
-
+      <b-card-header>  
           <b-container>
               <b-row>
                   <b-col cols="3">
@@ -19,17 +18,16 @@
                       </div>
                     </b-row>                          
                   </b-col>
-                  <b-col cols="8">
+                  <b-col cols="7">
                      <div id="messageDiv">           
-                        <div class="headerItem"> Toastmaster {{this.toastmaster}}</div> <br>
-                        <div class="headerItem"> Theme  <input class="editableAgendaItem longText" type="text" v-model="this.theme"> </input> </div><br>
-                        <div class="headerItem"> Venue <input class="editableAgendaItem longText" type="text" v-model="this.venue"> </input> </div><br>
-                        <div class="headerItem"> Toastmaster values <input class="editableAgendaItem longText" type="text" v-model="this.values"> </input> </div><br>
+                        <div class="headerItem"> Toastmaster: {{this.toastmaster}}</div> <br>
+                        <div class="headerItem"> Theme: <input class="editableAgendaItem longText" type="text" v-model="theme"> </input> </div><br>
+                        <div class="headerItem"> Venue: <input class="editableAgendaItem longText" type="text" v-model="venue"> </input> </div><br>
+                        <div class="headerItem"> values: <input class="editableAgendaItem longText" type="text" v-model="values"> </input> </div><br>
                     </div>
                   </b-col>
-                  <b-col cols="1">      
-                      <div class="buttonPanel">
-                    
+                  <b-col cols="2">      
+                      <div class="buttonPanel">                    
                         <b-button-group vertical>                      
                           <b-button v-on:click="startSession()"class="btn-outline-primary">Start Session</b-button>
                           <b-button v-on:click="saveAgendaItem" class="btn-outline-primary">Update</b-button>      
@@ -40,13 +38,16 @@
                   </b-col>                 
               </b-row>
                <b-row>
-                      <b-col cols="8">
+                      <b-col cols="4">
                         <div class="input-group">
-                          <input type="file" @change="previewImage" accept="image/*">
+                          <div class="upload-btn-wrapper">
+                            <b-button class="btn-outline-primary">Upload a file</b-button>
+                            <input type="file" @change="previewImage" accept="image/*">        
+                          </div>                    
                         </div>
                       </b-col>
 
-                      <b-col cols="4">                                     
+                      <b-col cols="8">                                     
                           <b-button-group>                      
                             <b-button v-on:click="moveUp()"class="btn-outline-primary">Move Up </b-button>
                             <b-button v-on:click="moveDown()" class="btn-outline-primary">Move Down</b-button>
@@ -77,6 +78,11 @@
             <input class="editableAgendaItem" type="text" v-model="data.item.player"> </input>
           </template>
 
+          <template slot="role" slot-scope="data">
+           <b-form-select v-model="data.item.role" :options="roles" class="editableAgendaItem"  />
+          </template>
+
+            
 
           <template slot="duration" slot-scope="data">
               <div style="display:inline" v-if="data.item.duration.min>0">
@@ -435,7 +441,7 @@ export default {
   data () {
     return {
       msg: 'Aganda',
-      fields: {time:{key:'time', label:' '}, discription:{key:'discription', label:' '}, player:{key:'player', label:' '}, duration:{key:'duration', label:' '}, signal:{key:'signal', label:' '}, start:{key:'start', label:' '}, stop:{key:'stop', label:' '}},
+      fields: {time:{key:'time', label:' '}, discription:{key:'discription', label:' '}, player:{key:'player', label:' '},role:{key:'role', label:' '}, duration:{key:'duration', label:' '}, signal:{key:'signal', label:' '}, start:{key:'start', label:' '}, stop:{key:'stop', label:' '}},
       agendaItems:[],
       selectedItem:{},
       itemCountOnLoad:0,
@@ -447,7 +453,8 @@ export default {
       theme: "",
       venue: "",
       values: "",
-      sessionStarted:false
+      sessionStarted:false,
+      roles:['Toastmaster', 'Table Topics Master', 'Speker', 'Timer']
     }
   }, 
 
@@ -478,6 +485,9 @@ export default {
         that.reRank();
         that.updateTime();
         that.$data.itemCountOnLoad = that.$data.agendaItems.length;
+
+        var tm = _.find(agendaItem, (item)=>{ return item.role === "Toastmaster" });
+        that.$data.toastmaster = tm.player;
     }); 
     
     }).catch(function(error) {
@@ -509,19 +519,17 @@ export default {
     color: #0d08f9
 }
 .longText{
-  width:300px;
+  width:250px;
 }
-.shortText
-{
-   width:20px;
-  
+.shortText{
+   width:20px; 
 }
+
 .alignRight{
  text-align:right;
 }
 
-.table td, .table th
-{
+.table td, .table th{
   padding:0px;
   vertical-align:middle;
   line-height:1;  
@@ -540,6 +548,7 @@ display:inline;
   border-radius:5px;
   display: flex;
   align-items: center; 
+  margin-left:40px;
 }
 
 #messageDiv{  
@@ -553,6 +562,7 @@ display:inline;
 
 .buttonPanel{
   padding-top: 20px;
+  float:right;
 }
 .btn-toolbar{
   background:gray;  
@@ -577,4 +587,30 @@ input[type="file"] {
   }
 }
 
+.upload-btn-wrapper {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  margin-left: 28px;
+}
+
+.upload-btn-wrapper input[type=file] {
+  font-size: 100px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+}
+
+.card-header{
+  padding:15px;
+}
+
+.container{
+  padding:0px;
+}
+
+.btn-group{
+  float:right;
+}
 </style>
